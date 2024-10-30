@@ -92,6 +92,13 @@ export async function writeHeaders(nitro: Nitro) {
   await fsp.writeFile(headersPath, contents);
 }
 
+export function getStaticPaths(nitro: Nitro): string[] {
+  const publicAssets = nitro.options.publicAssets.filter(
+    (dir) => dir.fallthrough !== true && dir.baseURL && dir.baseURL !== "/"
+  );
+  return ["/.netlify/*", ...publicAssets.map((dir) => `${dir.baseURL}/*`)];
+}
+
 // This is written to the functions directory. It just re-exports the compiled handler,
 // along with its config. We do this instead of compiling the entrypoint directly because
 // the Netlify platform actually statically analyzes the function file to read the config;
@@ -103,6 +110,7 @@ export const config = {
   name: "server handler",
   generator: "${getGeneratorString(nitro)}",
   path: "/*",
+  excludedPath: ${JSON.stringify(getStaticPaths(nitro))},
   preferStatic: true,
 };
     `.trim();

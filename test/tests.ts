@@ -88,6 +88,7 @@ export async function setupTest(
       "cloudflare-module",
       "cloudflare-module-legacy",
       "cloudflare-pages",
+      "netlify-edge",
       "vercel-edge",
       "winterjs",
     ].includes(preset),
