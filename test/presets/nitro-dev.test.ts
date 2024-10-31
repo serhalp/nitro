@@ -4,14 +4,7 @@ import { describe, expect, it } from "vitest";
 import { setupTest, testNitro } from "../tests";
 
 describe.skipIf(isCI)("nitro:preset:nitro-dev", async () => {
-  const ctx = await setupTest("nitro-dev", {
-    config: {
-      framework: {
-        name: "nitro",
-        version: "",
-      },
-    },
-  });
+  const ctx = await setupTest("nitro-dev", {});
   testNitro(
     ctx,
     () => {
