@@ -201,7 +201,7 @@ describe("nitro:preset:netlify-edge", async () => {
         const res = await handler(req, {} as EdgeFunctionContext);
         if (!(res instanceof Response))
           // The Netlify Edge Function handler API allows returning `undefined` but this
-          // test helper only supports a Response or this shape.
+          // test helper only supports a Response or this shape. This is equivalent to a 404.
           return {
             data: undefined,
             status: 404,
