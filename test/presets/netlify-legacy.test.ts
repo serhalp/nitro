@@ -167,7 +167,7 @@ describe("nitro:preset:netlify-legacy", async () => {
         "/with-default-fallthrough/* /with-default-fallthrough/:splat 200
         /nested/no-fallthrough/* /nested/no-fallthrough/:splat 200
         /* /catch-all 200"
-      `.trim()
+      `
       );
     });
   });
