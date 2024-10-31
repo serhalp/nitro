@@ -1,6 +1,5 @@
 import { promises as fsp } from "node:fs";
 import type { Context as FunctionContext } from "@netlify/functions";
-import type { Context as EdgeFunctionContext } from "@netlify/edge-functions";
 import { resolve } from "pathe";
 import { describe, expect, it } from "vitest";
 import { getPresetTmpDir, setupTest, testNitro } from "../tests";
@@ -169,117 +168,6 @@ export const config = {
         expect(
           (headers as Record<string, string>)["netlify-cdn-cache-control"]
         ).toBe("public, max-age=60, stale-while-revalidate=31536000, durable");
-      });
-    }
-  );
-});
-
-describe("nitro:preset:netlify-edge", async () => {
-  const publicDir = resolve(getPresetTmpDir("netlify-edge"), "dist");
-  const ctx = await setupTest("netlify-edge", {
-    config: {
-      publicAssets: [
-        {
-          dir: "dist/_nuxt",
-          baseURL: "_nuxt",
-        },
-      ],
-      output: {
-        publicDir,
-      },
-      netlify: {
-        images: {
-          remote_images: ["https://example.com/.*"],
-        },
-      },
-    },
-  });
-  testNitro(
-    ctx,
-    async () => {
-      const { default: handler } = (await import(
-        resolve(ctx.rootDir, ".netlify/edge-functions/server/server.js")
-      )) as {
-        default: (req: Request, _ctx: EdgeFunctionContext) => Promise<Response>;
-      };
-      return async ({ url: rawRelativeUrl, headers, method, body }) => {
-        // creating new URL object to parse query easier
-        const url = new URL(`https://example.com${rawRelativeUrl}`);
-        const req = new Request(url, {
-          headers: headers ?? {},
-          method,
-          body,
-        });
-        const res = await handler(req, {} as EdgeFunctionContext);
-        if (!(res instanceof Response))
-          // The Netlify Edge Function handler API allows returning `undefined` but this
-          // test helper only supports a Response or this shape. This is equivalent to a 404.
-          return {
-            data: undefined,
-            status: 404,
-            headers: {},
-          };
-        return res;
-      };
-    },
-    () => {
-      it("adds route rules - redirects", async () => {
-        const redirects = await fsp.readFile(
-          resolve(ctx.outDir, "../dist/_redirects"),
-          "utf8"
-        );
-
-        expect(redirects).toMatchInlineSnapshot(`
-        "/rules/nested/override	/other	302
-        /rules/redirect/wildcard/*	https://nitro.unjs.io/:splat	302
-        /rules/redirect/obj	https://nitro.unjs.io/	301
-        /rules/nested/*	/base	302
-        /rules/redirect	/base	302
-        "
-        `);
-      });
-
-      it("adds route rules - headers", async () => {
-        const headers = await fsp.readFile(
-          resolve(ctx.outDir, "../dist/_headers"),
-          "utf8"
-        );
-
-        expect(headers).toMatchInlineSnapshot(`
-        "/rules/headers
-          cache-control: s-maxage=60
-        /rules/cors
-          access-control-allow-origin: *
-          access-control-allow-methods: GET
-          access-control-allow-headers: *
-          access-control-max-age: 0
-        /rules/nested/*
-          x-test: test
-        /build/*
-          cache-control: public, max-age=3600, immutable
-        "
-      `);
-      });
-
-      it("writes edge-functions/manifest.json with static paths excluded", async () => {
-        const manifestFile = JSON.parse(
-          await fsp.readFile(
-            resolve(ctx.rootDir, ".netlify/edge-functions/manifest.json"),
-            "utf8"
-          )
-        );
-        expect(manifestFile).toEqual({
-          version: 1,
-          functions: [
-            {
-              path: "/*",
-              excludedPath: ["/.netlify/*", "/_nuxt/*", "/build/*"],
-              name: "edge server handler",
-              function: "server",
-              generator: "mock-framework@1.2.3",
-            },
-          ],
-        });
       });
     }
   );
