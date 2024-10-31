@@ -9,6 +9,12 @@ describe("nitro:preset:netlify-legacy", async () => {
   const ctx = await setupTest("netlify-legacy", {
     compatibilityDate: "2024-01-01",
     config: {
+      publicAssets: [
+        {
+          dir: "dist/_nuxt",
+          baseURL: "_nuxt",
+        },
+      ],
       output: {
         publicDir: resolve(getPresetTmpDir("netlify-legacy"), "dist"),
       },
@@ -70,6 +76,8 @@ describe("nitro:preset:netlify-legacy", async () => {
         /rules/isr-ttl/*	/.netlify/builders/server 200
         /rules/isr/*	/.netlify/builders/server 200
         /rules/dynamic	/.netlify/functions/server 200
+        /_nuxt/* /_nuxt/:splat 200
+        /build/* /build/:splat 200
         /* /.netlify/functions/server 200"
       `);
       });
