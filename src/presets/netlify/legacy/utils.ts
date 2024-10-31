@@ -10,7 +10,7 @@ export function generateCatchAllRedirects(
   if (!catchAllPath) return "";
 
   return [
-    // e.g.: /_nuxt/* /_nuxt/:splat 200
+    // e.g.: /static/* /static/:splat 200
     // Because of Netlify CDN shadowing
     // (https://docs.netlify.com/routing/redirects/rewrites-proxies/#shadowing),
     // this config avoids function invocations for all static paths, even 404s.
