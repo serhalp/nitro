@@ -4,6 +4,10 @@ import { defineNitroConfig } from "nitropack/config";
 export default defineNitroConfig({
   compressPublicAssets: true,
   compatibilityDate: "2024-09-19",
+  framework: {
+    name: "mock-framework",
+    version: "1.2.3",
+  },
   imports: {
     presets: [
       {
@@ -56,6 +60,24 @@ export default defineNitroConfig({
       baseURL: "build",
       dir: "public/build",
       maxAge: 3600,
+    },
+    {
+      fallthrough: true,
+      baseURL: "with-fallthrough",
+      dir: "with-fallthrough-dir",
+    },
+    {
+      fallthrough: true,
+      dir: "with-fallthrough-no-baseURL-dir",
+    },
+    {
+      baseURL: "with-default-fallthrough",
+      dir: "with-default-fallthrough-dir",
+    },
+    {
+      fallthrough: false,
+      baseURL: "nested/no-fallthrough",
+      dir: "nested/no-fallthrough-dir",
     },
   ],
   tasks: {

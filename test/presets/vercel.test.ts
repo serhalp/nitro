@@ -104,6 +104,20 @@ describe("nitro:preset:vercel", async () => {
                 "src": "/build(.*)",
               },
               {
+                "continue": true,
+                "headers": {
+                  "cache-control": "public,max-age=31536000,immutable",
+                },
+                "src": "/with-default-fallthrough(.*)",
+              },
+              {
+                "continue": true,
+                "headers": {
+                  "cache-control": "public,max-age=31536000,immutable",
+                },
+                "src": "/nested/no-fallthrough(.*)",
+              },
+              {
                 "handle": "filesystem",
               },
               {

@@ -41,6 +41,8 @@ describe.skipIf(isWindows)("nitro:preset:cloudflare-pages", async () => {
           "/blog/static/*",
           "/cf-pages-exclude/*",
           "/build/*",
+          "/with-default-fallthrough/*",
+          "/nested/no-fallthrough/*",
           "/_openapi.json",
           "/_openapi.json.br",
           "/_openapi.json.gz",

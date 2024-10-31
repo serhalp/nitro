@@ -6,39 +6,10 @@ import { describe, expect, it } from "vitest";
 import { getPresetTmpDir, setupTest, testNitro } from "../tests";
 
 describe("nitro:preset:netlify", async () => {
-  const publicDir = resolve(getPresetTmpDir("netlify"), "dist");
   const ctx = await setupTest("netlify", {
     config: {
-      framework: {
-        name: "mock-framework",
-        version: "1.2.3",
-      },
-      publicAssets: [
-        {
-          fallthrough: true,
-          baseURL: "foo",
-          dir: publicDir,
-        },
-        {
-          fallthrough: false,
-          dir: publicDir,
-        },
-        {
-          fallthrough: true,
-          dir: publicDir,
-        },
-        {
-          baseURL: "icons",
-          dir: publicDir,
-        },
-        {
-          fallthrough: false,
-          baseURL: "nested/fonts",
-          dir: publicDir,
-        },
-      ],
       output: {
-        publicDir,
+        publicDir: resolve(getPresetTmpDir("netlify"), "dist"),
       },
       netlify: {
         images: {
@@ -83,6 +54,7 @@ describe("nitro:preset:netlify", async () => {
         "
         `);
       });
+
       it("adds route rules - headers", async () => {
         const headers = await fsp.readFile(
           resolve(ctx.outDir, "../dist/_headers"),
@@ -104,6 +76,7 @@ describe("nitro:preset:netlify", async () => {
         "
       `);
       });
+
       it("writes config.json", async () => {
         const config = await fsp
           .readFile(resolve(ctx.outDir, "../deploy/v1/config.json"), "utf8")
@@ -118,6 +91,7 @@ describe("nitro:preset:netlify", async () => {
           }
         `);
       });
+
       it("writes server/server.mjs with static paths excluded", async () => {
         const serverFunctionFile = await fsp.readFile(
           resolve(ctx.outDir, "server/server.mjs"),
@@ -130,12 +104,13 @@ export const config = {
   name: "server handler",
   generator: "mock-framework@1.2.3",
   path: "/*",
-  excludedPath: ["/.netlify/*","/icons/*","/nested/fonts/*","/build/*"],
+  excludedPath: ["/.netlify/*","/build/*","/with-default-fallthrough/*","/nested/no-fallthrough/*"],
   preferStatic: true,
 };
         `.trim()
         );
       });
+
       describe("matching ISR route rule with no max-age", () => {
         it("sets Netlify-CDN-Cache-Control header with revalidation after 1 year and durable directive", async () => {
           const { headers } = await callHandler({ url: "/rules/isr" });
@@ -143,6 +118,7 @@ export const config = {
             (headers as Record<string, string>)["netlify-cdn-cache-control"]
           ).toBe("public, max-age=31536000, must-revalidate, durable");
         });
+
         it("sets Cache-Control header with immediate revalidation", async () => {
           const { headers } = await callHandler({ url: "/rules/isr" });
           expect((headers as Record<string, string>)["cache-control"]).toBe(
@@ -150,6 +126,7 @@ export const config = {
           );
         });
       });
+
       describe("matching ISR route rule with a max-age", () => {
         it("sets Netlify-CDN-Cache-Control header with SWC=1yr, given max-age, and durable directive", async () => {
           const { headers } = await callHandler({ url: "/rules/isr-ttl" });
@@ -159,6 +136,7 @@ export const config = {
             "public, max-age=60, stale-while-revalidate=31536000, durable"
           );
         });
+
         it("sets Cache-Control header with immediate revalidation", async () => {
           const { headers } = await callHandler({ url: "/rules/isr-ttl" });
           expect((headers as Record<string, string>)["cache-control"]).toBe(
@@ -166,6 +144,7 @@ export const config = {
           );
         });
       });
+
       it("does not overwrite Cache-Control headers given a matching non-ISR route rule", async () => {
         const { headers } = await callHandler({ url: "/rules/dynamic" });
         expect(
@@ -175,6 +154,7 @@ export const config = {
           (headers as Record<string, string>)["netlify-cdn-cache-control"]
         ).not.toBeDefined();
       });
+
       // Regression test for https://github.com/unjs/nitro/issues/2431
       it("matches paths with a query string", async () => {
         const { headers } = await callHandler({
@@ -192,34 +172,6 @@ describe("nitro:preset:netlify-edge", async () => {
   const publicDir = resolve(getPresetTmpDir("netlify-edge"), "dist");
   const ctx = await setupTest("netlify-edge", {
     config: {
-      framework: {
-        name: "mock-framework",
-        version: "1.2.3",
-      },
-      publicAssets: [
-        {
-          fallthrough: true,
-          baseURL: "foo",
-          dir: publicDir,
-        },
-        {
-          fallthrough: false,
-          dir: publicDir,
-        },
-        {
-          fallthrough: true,
-          dir: publicDir,
-        },
-        {
-          baseURL: "icons",
-          dir: publicDir,
-        },
-        {
-          fallthrough: false,
-          baseURL: "nested/fonts",
-          dir: publicDir,
-        },
-      ],
       output: {
         publicDir,
       },
@@ -274,6 +226,7 @@ describe("nitro:preset:netlify-edge", async () => {
         "
         `);
       });
+
       it("adds route rules - headers", async () => {
         const headers = await fsp.readFile(
           resolve(ctx.outDir, "../dist/_headers"),
@@ -295,6 +248,7 @@ describe("nitro:preset:netlify-edge", async () => {
         "
       `);
       });
+
       it("writes edge-functions/manifest.json with static paths excluded", async () => {
         const manifestFile = JSON.parse(
           await fsp.readFile(
@@ -309,9 +263,9 @@ describe("nitro:preset:netlify-edge", async () => {
               path: "/*",
               excludedPath: [
                 "/.netlify/*",
-                "/icons/*",
-                "/nested/fonts/*",
                 "/build/*",
+                "/with-default-fallthrough/*",
+                "/nested/no-fallthrough/*",
               ],
               name: "edge server handler",
               function: "server",
