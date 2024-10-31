@@ -5,8 +5,8 @@ export default defineNitroConfig({
   compressPublicAssets: true,
   compatibilityDate: "2024-09-19",
   framework: {
-    name: "mock-framework",
-    version: "1.2.3",
+    name: "nitro",
+    version: "2.x",
   },
   imports: {
     presets: [

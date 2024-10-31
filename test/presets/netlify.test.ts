@@ -2,17 +2,12 @@ import { promises as fsp } from "node:fs";
 import type { Context as FunctionContext } from "@netlify/functions";
 import { resolve } from "pathe";
 import { describe, expect, it } from "vitest";
+import { getStaticPaths } from "../../src/presets/netlify/utils";
 import { getPresetTmpDir, setupTest, testNitro } from "../tests";
 
 describe("nitro:preset:netlify", async () => {
   const ctx = await setupTest("netlify", {
     config: {
-      publicAssets: [
-        {
-          dir: "dist/_nuxt",
-          baseURL: "_nuxt",
-        },
-      ],
       output: {
         publicDir: resolve(getPresetTmpDir("netlify"), "dist"),
       },
@@ -102,18 +97,16 @@ describe("nitro:preset:netlify", async () => {
           resolve(ctx.outDir, "server/server.mjs"),
           "utf8"
         );
-        expect(serverFunctionFile).toEqual(
-          `
-export { default } from "./main.mjs";
-export const config = {
-  name: "server handler",
-  generator: "mock-framework@1.2.3",
-  path: "/*",
-  excludedPath: ["/.netlify/*","/_nuxt/*","/build/*"],
-  preferStatic: true,
-};
-        `.trim()
-        );
+        expect(serverFunctionFile).toMatchInlineSnapshot(`
+          "export { default } from "./main.mjs";
+          export const config = {
+            name: "server handler",
+            generator: "nitro@2.x",
+            path: "/*",
+            excludedPath: ["/.netlify/*","/build/*"],
+            preferStatic: true,
+          };"
+        `);
       });
 
       describe("matching ISR route rule with no max-age", () => {
@@ -171,4 +164,53 @@ export const config = {
       });
     }
   );
+
+  describe("getStaticPaths", () => {
+    it("always returns `/.netlify/*`", () => {
+      expect(getStaticPaths([])).toEqual(["/.netlify/*"]);
+    });
+
+    it("returns a pattern with a leading slash for each non-fallthrough non-root public asset path", () => {
+      const publicAssets = [
+        {
+          fallthrough: true,
+          baseURL: "with-fallthrough",
+          dir: "with-fallthrough-dir",
+          maxAge: 0,
+        },
+        {
+          fallthrough: true,
+          dir: "with-fallthrough-no-baseURL-dir",
+          maxAge: 0,
+        },
+        {
+          fallthrough: false,
+          dir: "no-fallthrough-no-baseURL-dir",
+          maxAge: 0,
+        },
+        {
+          fallthrough: false,
+          dir: "no-fallthrough-root-baseURL-dir",
+          baseURL: "/",
+          maxAge: 0,
+        },
+        {
+          baseURL: "with-default-fallthrough",
+          dir: "with-default-fallthrough-dir",
+          maxAge: 0,
+        },
+        {
+          fallthrough: false,
+          baseURL: "nested/no-fallthrough",
+          dir: "nested/no-fallthrough-dir",
+          maxAge: 0,
+        },
+      ];
+      expect(getStaticPaths(publicAssets)).toEqual([
+        "/.netlify/*",
+        "/with-default-fallthrough/*",
+        "/nested/no-fallthrough/*",
+      ]);
+    });
+  });
 });
