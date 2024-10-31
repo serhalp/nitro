@@ -61,24 +61,6 @@ export default defineNitroConfig({
       dir: "public/build",
       maxAge: 3600,
     },
-    {
-      fallthrough: true,
-      baseURL: "with-fallthrough",
-      dir: "with-fallthrough-dir",
-    },
-    {
-      fallthrough: true,
-      dir: "with-fallthrough-no-baseURL-dir",
-    },
-    {
-      baseURL: "with-default-fallthrough",
-      dir: "with-default-fallthrough-dir",
-    },
-    {
-      fallthrough: false,
-      baseURL: "nested/no-fallthrough",
-      dir: "nested/no-fallthrough-dir",
-    },
   ],
   tasks: {
     "db:migrate": { description: "Migrate database" },

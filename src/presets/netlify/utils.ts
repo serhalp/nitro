@@ -1,6 +1,7 @@
 import { existsSync, promises as fsp } from "node:fs";
-import type { Nitro } from "nitropack/types";
+import type { Nitro, PublicAssetDir } from "nitropack/types";
 import { join } from "pathe";
+import { joinURL } from "ufo";
 
 export async function writeRedirects(nitro: Nitro) {
   const redirectsPath = join(nitro.options.output.publicDir, "_redirects");
@@ -92,11 +93,16 @@ export async function writeHeaders(nitro: Nitro) {
   await fsp.writeFile(headersPath, contents);
 }
 
-export function getStaticPaths(nitro: Nitro): string[] {
-  const publicAssets = nitro.options.publicAssets.filter(
-    (dir) => dir.fallthrough !== true && dir.baseURL && dir.baseURL !== "/"
-  );
-  return ["/.netlify/*", ...publicAssets.map((dir) => `${dir.baseURL}/*`)];
+export function getStaticPaths(publicAssets: PublicAssetDir[]): string[] {
+  return [
+    "/.netlify",
+    ...publicAssets
+      .filter(
+        (path) =>
+          path.fallthrough !== true && path.baseURL && path.baseURL !== "/"
+      )
+      .map(({ baseURL }) => baseURL),
+  ].map((url) => joinURL("/", url!, "*"));
 }
 
 // This is written to the functions directory. It just re-exports the compiled handler,
@@ -110,7 +116,7 @@ export const config = {
   name: "server handler",
   generator: "${getGeneratorString(nitro)}",
   path: "/*",
-  excludedPath: ${JSON.stringify(getStaticPaths(nitro))},
+  excludedPath: ${JSON.stringify(getStaticPaths(nitro.options.publicAssets))},
   preferStatic: true,
 };
     `.trim();

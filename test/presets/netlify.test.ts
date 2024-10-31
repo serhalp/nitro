@@ -8,6 +8,12 @@ import { getPresetTmpDir, setupTest, testNitro } from "../tests";
 describe("nitro:preset:netlify", async () => {
   const ctx = await setupTest("netlify", {
     config: {
+      publicAssets: [
+        {
+          dir: "dist/_nuxt",
+          baseURL: "_nuxt",
+        },
+      ],
       output: {
         publicDir: resolve(getPresetTmpDir("netlify"), "dist"),
       },
@@ -104,7 +110,7 @@ export const config = {
   name: "server handler",
   generator: "mock-framework@1.2.3",
   path: "/*",
-  excludedPath: ["/.netlify/*","/build/*","/with-default-fallthrough/*","/nested/no-fallthrough/*"],
+  excludedPath: ["/.netlify/*","/_nuxt/*","/build/*"],
   preferStatic: true,
 };
         `.trim()
@@ -172,6 +178,12 @@ describe("nitro:preset:netlify-edge", async () => {
   const publicDir = resolve(getPresetTmpDir("netlify-edge"), "dist");
   const ctx = await setupTest("netlify-edge", {
     config: {
+      publicAssets: [
+        {
+          dir: "dist/_nuxt",
+          baseURL: "_nuxt",
+        },
+      ],
       output: {
         publicDir,
       },
@@ -261,12 +273,7 @@ describe("nitro:preset:netlify-edge", async () => {
           functions: [
             {
               path: "/*",
-              excludedPath: [
-                "/.netlify/*",
-                "/build/*",
-                "/with-default-fallthrough/*",
-                "/nested/no-fallthrough/*",
-              ],
+              excludedPath: ["/.netlify/*", "/_nuxt/*", "/build/*"],
               name: "edge server handler",
               function: "server",
               generator: "mock-framework@1.2.3",

@@ -86,7 +86,7 @@ const netlifyEdge = defineNitroPreset(
           functions: [
             {
               path: "/*",
-              excludedPath: getStaticPaths(nitro),
+              excludedPath: getStaticPaths(nitro.options.publicAssets),
               name: "edge server handler",
               function: "server",
               generator: getGeneratorString(nitro),
